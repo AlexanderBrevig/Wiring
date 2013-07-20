@@ -3,46 +3,43 @@
  * by BREVIG http://alexanderbrevig.com
  * 
  * Demonstrate the usage of a HashMap
- * This HashMap will pair a char* string to an integer and it has the capacity to hold three pairs
+ * This HashMap will pair a char* string to an integer
+ *
+ * NB: Do not use this library for large datastructures 
+ *     as the contents are often copied (each retrieval)
  */
 
 #include <HashMap.h>
 
-CreateHashMap(hashMap, char*, int, 3); //create hashMap that pairs char* to int and can hold 3 pairs
+HashMap<const char*, int> hashMap;
+
+const char* newKey = "newKey";
+const char* otherKey = "otherKey";
+const char* lastKey = "lastKey";
 
 void setup()
 {
   //add and store keys and values
-  hashMap["newKey"] = 12;
-  hashMap["otherKey"] = 13;
-  
-  //check if overflow (there should not be any danger yet)
-  Serial.print("Will the hashMap overflow now [after 2 assigns] ?: ");
-  Serial.println(hashMap.willOverflow());
-  
-  hashMap["lastKey"] = 14;
-  
-  //check if overflow (this should be true, as we have added 3 of 3 pairs)
-  Serial.print("Will the hashMap overflow now [after 3 assigns] ?: ");
-  Serial.println(hashMap.willOverflow());
-  
-  //it will overflow, but this won't affect the code.
-  hashMap["test"] = 15;
+  hashMap.put(newKey, 12);
+  hashMap.put(otherKey, 13);
+  hashMap.put(lastKey,14);
+
+  printHashMap();
 
   //change the value of newKey
-  Serial.print("The old value of newKey: ");
-  Serial.println(hashMap["newKey"]);
+  Serial.print("The old value of lastKey: ");
+  Serial.println(hashMap.valueFor(lastKey));
   
-  hashMap["newKey"]++;
+  hashMap.put(lastKey, hashMap.valueFor(lastKey) + 1);
   
-  Serial.print("The new value of newKey (after hashMap['newKey']++): ");
-  Serial.println(hashMap["newKey"]);
+  Serial.print("The new value of lastKey: ");
+  Serial.println(hashMap.valueFor(lastKey));
 
-  //remove a key from the hashMap
-  hashMap.remove("otherKey");
-  
-  //this should work as there is now an availabel spot in the hashMap
-  hashMap["test"] = 15;
+  Serial.print("The key for value 13: ");
+  Serial.println(hashMap.keyFor(13));
+
+  Serial.println("Remove otherKey from the hashMap");
+  hashMap.remove(otherKey);
 
   printHashMap();
 }
@@ -51,11 +48,15 @@ void loop() {}
 
 void printHashMap() 
 {
-  for (int i=0; i<hashMap.size(); i++) 
+  Serial.println("\nPrint hash map: ");
+  for (int i=0; i<hashMap.count(); i++) 
   {
-    Serial.print("Key: ");
+    Serial.print("\t");
+    Serial.print(i);
+    Serial.print(") key: ");
     Serial.print(hashMap.keyAt(i));
-    Serial.print(" Value: ");
+    Serial.print(" with value: ");
     Serial.println(hashMap.valueAt(i));
   }
+  Serial.println("");
 }

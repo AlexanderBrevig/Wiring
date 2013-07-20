@@ -1,12 +1,15 @@
-/* $Id: HashMap.h 1198 2011-06-14 21:08:27Z bhagman $
+/* 
 ||
 || @author         Alexander Brevig <abrevig@wiring.org.co>
 || @url            http://wiring.org.co/
 || @url            http://alexanderbrevig.com/
+|| @contribution   https://github.com/alessandro1105
 || @contribution   Brett Hagman <bhagman@wiring.org.co>
 ||
 || @description
 || | Implementation of a HashMap data structure.
+|| | This version is heavily based upon a suggestion from Alessandro1105
+|| | Thank you for your contribution!
 || |
 || | Wiring Cross-platform Library
 || #
@@ -18,221 +21,270 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
-#include "Countable.h"
+template<typename hash,typename map>
+class HashType {
+public:
+  HashType() { reset(); }
+  HashType(hash code, map value): hashCode(code), mappedValue(value) { }
 
-//for convenience
-#define CreateHashMap(hashM, ktype, vtype, capacity) HashMap<ktype,vtype,capacity> hashM
-#define CreateComplexHashMap(hashM, ktype, vtype, capacity, comparator) HashMap<ktype,vtype,capacity> hashM(comparator)
+  void reset() {
+    hashCode = 0; mappedValue = 0;
+  }
 
-template<typename K, typename V, unsigned int capacity>
-class HashMap
-{
-  public:
-    typedef bool (*comparator)(K, K);
+  hash getHash() const {
+    return hashCode;
+  }
 
-    /*
-    || @constructor
-    || | Initialize this HashMap
-    || #
-    ||
-    || @parameter compare optional function for comparing a key against another (for complex types)
-    */
-    HashMap(comparator compare = 0)
-    {
-      cb_comparator = compare;
-      currentIndex = 0;
-    }
+  void setHash(hash code){
+    hashCode = code;
+  }
 
-    /*
-    || @description
-    || | Get the size of this HashMap
-    || #
-    ||
-    || @return The size of this HashMap
-    */
-    unsigned int size() const
-    {
-      return currentIndex;
-    }
+  map getValue() const {
+    return mappedValue;
+  }
 
-    /*
-    || @description
-    || | Get a key at a specified index
-    || #
-    ||
-    || @parameter idx the index to get the key at
-    ||
-    || @return The key at index idx
-    */
-    K keyAt(unsigned int idx)
-    {
-      return keys[idx];
-    }
+  void setValue(map value){
+    mappedValue = value;
+  }
 
-    /*
-    || @description
-    || | Get a value at a specified index
-    || #
-    ||
-    || @parameter idx the index to get the value at
-    ||
-    || @return The value at index idx
-    */
-    V valueAt(unsigned int idx)
-    {
-      return values[idx];
-    }
-
-    /*
-    || @description
-    || | Check if a new assignment will overflow this HashMap
-    || #
-    ||
-    || @return true if next assignment will overflow this HashMap
-    */
-    bool willOverflow()
-    {
-      return (currentIndex + 1 > capacity);
-    }
-
-    /*
-    || @description
-    || | An indexer for accessing and assigning a value to a key
-    || | If a key is used that exists, it returns the value for that key
-    || | If there exists no value for that key, the key is added
-    || #
-    ||
-    || @parameter key the key to get the value for
-    ||
-    || @return The const value for key
-    */
-    const V& operator[](const K key) const
-    {
-      return operator[](key);
-    }
-
-    /*
-    || @description
-    || | An indexer for accessing and assigning a value to a key
-    || | If a key is used that exists, it returns the value for that key
-    || | If there exists no value for that key, the key is added
-    || #
-    ||
-    || @parameter key the key to get the value for
-    ||
-    || @return The value for key
-    */
-    V& operator[](const K key)
-    {
-      if (contains(key))
-      {
-        return values[indexOf(key)];
-      }
-      else if (currentIndex < capacity)
-      {
-        keys[currentIndex] = key;
-        values[currentIndex] = nil;
-        currentIndex++;
-        return values[currentIndex - 1];
-      }
-      return nil;
-    }
-
-    /*
-    || @description
-    || | Get the index of a key
-    || #
-    ||
-    || @parameter key the key to get the index for
-    ||
-    || @return The index of the key, or -1 if key does not exist
-    */
-    unsigned int indexOf(K key)
-    {
-      for (int i = 0; i < currentIndex; i++)
-      {
-        if (cb_comparator)
-        {
-          if (cb_comparator(key, keys[i]))
-          {
-            return i;
-          }
-        }
-        else
-        {
-          if (key == keys[i])
-          {
-            return i;
-          }
-        }
-      }
-      return -1;
-    }
-
-    /*
-    || @description
-    || | Check if a key is contained within this HashMap
-    || #
-    ||
-    || @parameter key the key to check if is contained within this HashMap
-    ||
-    || @return true if it is contained in this HashMap
-    */
-    bool contains(K key)
-    {
-      for (int i = 0; i < currentIndex; i++)
-      {
-        if (cb_comparator)
-        {
-          if (cb_comparator(key, keys[i]))
-          {
-            return true;
-          }
-        }
-        else
-        {
-          if (key == keys[i])
-          {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    /*
-    || @description
-    || | Check if a key is contained within this HashMap
-    || #
-    ||
-    || @parameter key the key to remove from this HashMap
-    */
-    void remove(K key)
-    {
-      int index = indexOf(key);
-      if (contains(key))
-      {
-        for (int i = index; i < capacity - 1; i++)
-        {
-          keys[i] = keys[i + 1];
-          values[i] = values[i + 1];
-        }
-        currentIndex--;
-      }
-    }
-
-    void setNullValue(V nullv)
-    {
-      nil = nullv;
-    }
-
-  protected:
-    K keys[capacity];
-    V values[capacity];
-    V nil;
-    int currentIndex;
-    comparator cb_comparator;
+  HashType& operator()(hash code, map value){
+    setHash(code);
+    setValue(value);
+  }
+private:
+  hash hashCode;
+  map mappedValue;
 };
 
-#endif
+
+template<typename hash, typename map>
+class HashNode {
+public:
+  HashNode(hash code, map value) {
+    hashType = new HashType<hash, map>(code, value);
+    previus = 0;
+    next = 0;
+  }
+
+  ~HashNode() {
+    delete hashType;
+  }
+
+  HashType<hash, map> * getHashType() const {
+    return hashType;
+  }
+
+  HashNode<hash, map> * getPrevius() const {
+    return previus;
+  }
+
+  HashNode<hash, map> * getNext() const {
+    return next;
+  }
+
+  void setPrevius(HashNode<hash, map> * previus) {
+    this->previus = previus;
+  }
+
+  void setNext(HashNode<hash, map> * next) {
+    this->next = next;
+  }
+
+private:
+  HashType<hash, map> * hashType;
+  HashNode * previus;
+  HashNode * next;
+};
+
+
+template<typename hash,typename map>
+class HashMap {
+public:
+  HashMap(){  
+    start = 0;
+    finish = 0;
+    position = 0; 
+    size = 0;
+  }
+
+  ~HashMap(){
+    if (moveToFirst()) {
+      HashNode<hash, map> * next = position;
+      while (position) {
+        next = position->getNext();
+        delete position;
+        position = next;
+      }
+    }
+  }
+
+  void put(hash key, map value) { 
+    if (start == 0) {
+      start = finish = new HashNode<hash, map>(key, value);
+    } else {
+      if (hashPairForKey(key)!=0) {
+        remove(hashPairForKey(key));
+      }
+      HashNode<hash, map> * temp = new HashNode<hash, map>(key, value);
+      finish->setNext(temp);
+      temp->setPrevius(finish);
+      finish = temp;
+    }
+    size++;
+  }
+
+  bool containsKey(hash key) const {
+    return hashPairForKey(key) != 0;
+  }
+
+  map valueFor(hash key) {
+    HashNode<hash, map> * pointer = hashPairForKey(key);
+    if (pointer != 0) {
+      return pointer->getHashType()->getValue();
+    }
+  }
+
+  map valueAt(int i) {
+    moveToFirst();
+    int iter = 0;
+    do {
+      if (iter == i) {
+        return position->getHashType()->getValue();
+      }
+      iter++;
+    } while (moveToNext());
+  }
+
+  map value() {
+    if (position != 0) {
+      return position->getHashType()->getValue();
+    }
+  }
+
+  hash keyFor(map value) {
+    moveToFirst();
+    do {
+      if (position->getHashType()->getValue() == value) {
+        return position->getHashType()->getHash();
+      }
+    } while (moveToNext());
+  }
+
+  hash keyAt(int i) {
+    moveToFirst();
+    int iter = 0;
+    do {
+      if (iter == i) {
+        return position->getHashType()->getHash();
+      }
+      iter++;
+    } while (moveToNext());
+  }
+
+  hash key() {
+    if (position != 0) {
+      return position->getHashType()->getHash();
+    }
+  }
+
+  void remove(hash key) {
+    HashNode<hash, map> * pointer = hashPairForKey(key);
+    if (pointer != 0) {
+      remove(pointer);
+    }
+  }
+
+  void remove() {
+    if (position != 0) {
+      if (size == 1) {          
+        remove(position);
+        position = 0;
+      } else {
+        if (position == start) {
+          remove(position);
+          position = start;
+        } else {
+          remove(position);
+          position = position->getPrevius();
+        }
+      }
+    }
+  }
+
+  unsigned int count() const {return size; }
+
+  bool moveToFirst() {
+    if (start != 0) {
+      position = start;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool moveToLast() {
+    if (finish != 0) {
+      position = finish;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool moveToNext() {
+    if (position->getNext() != 0) {
+      position = position->getNext();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool moveToPrev() {
+    if (position->getPrevius() != 0) {
+      position = position->getPrevius();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+private:
+
+  HashNode<hash, map> * hashPairForKey(hash key) {
+    for(HashNode<hash, map> * pointer = start; pointer != 0; pointer = pointer->getNext()) {
+      HashType<hash, map> * hashType = pointer->getHashType();
+      if (key == hashType->getHash()) {
+        return pointer;
+      }
+    }
+    return 0;
+  }
+
+  void remove(HashNode<hash, map> * pointer) {
+    if (pointer == 0) return;
+    if (size == 1) {
+      start = finish = 0;
+    } else {
+      if (pointer == start) {
+        start = start->getNext();
+        start->setPrevius(0);
+      } else if (pointer == finish) {
+        finish = finish->getPrevius();
+        finish->setNext(0);
+      } else {
+        pointer->getPrevius()->setNext(pointer->getNext());
+        pointer->getNext()->setPrevius(pointer->getPrevius());
+      }
+    }
+
+    size--;
+    delete pointer;
+  }
+
+  HashNode<hash, map> * start;
+  HashNode<hash, map> * finish;
+  HashNode<hash, map> * position;
+  int size;
+};
 // HASHMAP_H
