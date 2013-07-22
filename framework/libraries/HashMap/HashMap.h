@@ -287,4 +287,5 @@ private:
   HashNode<hash, map> * position;
   int size;
 };
+#endif
 // HASHMAP_H
