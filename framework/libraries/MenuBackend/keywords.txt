@@ -32,12 +32,14 @@ getRoot                        KEYWORD2
 getCurrent                     KEYWORD2
 getName                        KEYWORD2
 getBack                        KEYWORD2
+getExit                        KEYWORD2
 getBefore                      KEYWORD2
 getRight                       KEYWORD2
 getAfter                       KEYWORD2
 getLeft                        KEYWORD2
 use                            KEYWORD2
 moveBack                       KEYWORD2
+moveExit                       KEYWORD2
 moveUp                         KEYWORD2
 moveDown                       KEYWORD2
 moveLeft                       KEYWORD2
